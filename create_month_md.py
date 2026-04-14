@@ -50,7 +50,7 @@ def h_md(h: int, string: str) -> str: #format headers in markdown
 
 # create list of tuples, where (x, y, z)
 # x is day of month, y is day of week, z is month's index (starts at 0, ends at 11)
-def create_calen(firstdayyear: str, year_type: list, lang: int) -> list:
+def create_calen(firstdayyear: str, year_type: int, lang: int) -> list:
     calendar = []
     month_num = 0
     startcountday = WEEKDAYS[lang].index(firstdayyear)
@@ -100,17 +100,17 @@ def count_diff_days(week: list, kind: int) -> int:
 
 # recieve distribute_weeks() result and transform it to good-looking months note based on unity of week
 def goodlike_months(all_weeks: list, minday: int = 3) -> list:
-    goodlike_months = []
+    goodlike_months_list = []
     month_num = 0
     while month_num < 12:
         month_list = []
         for week in all_weeks:
             if count_diff_days(week, month_num) > minday:
                 month_list.append(week)
-        goodlike_months.append(month_list)
+        goodlike_months_list.append(month_list)
         month_num += 1
 
-    return goodlike_months
+    return goodlike_months_list
 
 # additional func to get list of days of standard month. is not using in the code but is honorable mentioned
 def get_month_weeks(calendar: list, month_num: int) -> list:
@@ -124,6 +124,12 @@ def abs_val(num):
     if num < 0:
         num = -1*num
     return num
+
+def sum_list(liste: list) -> int:
+    sum = int()
+    for elem in liste:
+        sum += elem
+    return sum
 
 def def_type_year(year: int) -> int: #is it leap or common
     yeartype = 0
@@ -143,19 +149,28 @@ def create_output(month_num, lang=0, year=YEAR, startweekday=STARTWEEKDAY[0], fi
     year_type = COMMON_MONTHS if def_type_year(year) == 28 else LEAP_MONTHS
     calendar = create_calen(firstdayyear, year_type, lang)
     distrib_weeks = distribute_weeks(calendar, startweekday)
-    weeks = goodlike_months(distrib_weeks)[month_num]
-    week_count = 1
-
+    weeks = goodlike_months(distrib_weeks)
+    month_week_count = 1
+    if month_num == 0:
+        previous_weeks_count = 0
+    else:
+        previous_weeks_count = sum_list([len(month_weeks) for month_weeks in weeks[:month_num]])
+    
     label = h_md(1, f"{abs_val(month_num-12)} {MONTHS_NAME[lang][month_num]} {str(year)[2:]}")
-    output += label + "\n\n"
+    #output += label + "\n\n"
+    output += label + "\n"
     for part in STRUCTURE_NOTE[lang]:
-        output += "\n" + h_md(3, part) + "\n\n"
+        #output += "\n" + h_md(3, part) + "\n\n"
+        output += h_md(3, part) + "\n"
         if part == STRUCTURE_NOTE[lang][1]:
-            for week in weeks:
-                output += "\n" + h_md(4, f"{week_count} {WORD_WEEK[lang]} {week[0][0]+1}-{week[-1][0]+1}") + "\n\n"
+            for week in weeks[month_num]:
+                global_week_count = month_week_count + previous_weeks_count
+                #output += "\n" + h_md(4, f"{week_count} {WORD_WEEK[lang]} {week[0][0]+1}-{week[-1][0]+1}") + "\n\n"
+                output += h_md(4, f"{month_week_count}/{global_week_count} {WORD_WEEK[lang]} {week[0][0]+1}-{week[-1][0]+1}") + "\n"
                 for day in week:
-                    output += h_md(5, f"{day[1]} {day[0]+1}") + "\n\n"
-                week_count+= 1
+                    #output += h_md(5, f"{day[1]} {day[0]+1}") + "\n\n"
+                    output += h_md(5, f"{day[1]} {day[0]+1}") + "\n"
+                month_week_count+= 1
     return output
 
 
@@ -240,5 +255,11 @@ def main():
             print("The program is closed")
             break
     return 0
+
+year_type = COMMON_MONTHS if def_type_year(YEAR) == 28 else LEAP_MONTHS
+calendar = create_calen(FIRSTDAYYEAR[LANG_IDX], year_type, LANG_IDX)
+distrib_weeks = distribute_weeks(calendar, STARTWEEKDAY[LANG_IDX])
+
+#print(distrib_weeks)
 
 main()
