@@ -156,7 +156,9 @@ def create_output(month_num, lang=0, year=YEAR, startweekday=STARTWEEKDAY[0], fi
     else:
         previous_weeks_count = sum_list([len(month_weeks) for month_weeks in weeks[:month_num]])
     
-    label = h_md(1, f"{abs_val(month_num-12)} {MONTHS_NAME[lang][month_num]} {str(year)[2:]}")
+    month_num_lable = abs_val(month_num-12) if month_num > 10 else f"0{abs_val(month_num-12)}"
+
+    label = h_md(1, f"{month_num_lable} {MONTHS_NAME[lang][month_num]} {str(year)[2:]}")
     #output += label + "\n\n"
     output += label + "\n"
     for part in STRUCTURE_NOTE[lang]:
